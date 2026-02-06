@@ -30,6 +30,13 @@
   </div>
   
   <p>Add missing workouts to Apple Health app.</p>
+<script>
+const SUPABASE_URL = 'https://dbywqgnvfkpfcqoydptg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023';
+
+async function loadData() {
+  const today = new Date().toISOString().split('T')[0];
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/daily?select=*&date
 </body>
 </html>
   <link rel="manifest" href="data:application/manifest+json,{
@@ -40,3 +47,4 @@
     'background_color': '#ffffff',
     'theme_color': '#1976d2',
     'icons': [{'src': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD
+
