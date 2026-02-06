@@ -1,108 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Fitness Tracker</title>
-  <meta name="viewport" content="width=device-width">
-  <style>
-    body { font-family: -apple-system, sans-serif; margin: 20px; max-width: 400px; margin: auto; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin: 10px 0; }
-    .exercise { background: #e3f2fd; }
-    .sleep { background: #f3e5f5; }
-    .big { font-size: 48px; font-weight: bold; color: #1976d2; }
-    .goal { height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 10px; }
-    .goal-fill { height: 100%; background: #4caf50; border-radius: 4px; }
-    .status { color: orange; font-size: 14px; }
-    .error { color: red; }
-  </style>
+<title>Fitness Live</title>
+<meta name="viewport" content="width=device-width">
+<style>
+body{font-family:-apple-system,sans-serif;margin:20px;max-width:400px;margin:auto;}
+.card{border:1px solid #ddd;border-radius:12px;padding:20px;margin:10px 0;}
+.exercise{background:#e3f2fd;}.sleep{background:#f3e5f5;}
+.big{font-size:48px;font-weight:bold;color:#1976d2;}
+.goal{height:8px;background:#e0e0e0;border-radius:4px;margin-top:10px;}
+.goal-fill{height:100%;background:#4caf50;border-radius:4px;}
+#message{font-weight:bold;color:#1976d2;}
+</style>
 </head>
 <body>
-  <h1>Today</h1>
-  
-  <div id="exercise" class="card exercise">
-    <div class="big" id="ex-cal">Loading...</div>
-    <div id="ex-details">Loading...</div>
-    <div class="goal"><div class="goal-fill" id="ex-goal" style="width: 0%"></div></div>
-    <div id="ex-status" class="status"></div>
-  </div>
-  
-  <div id="sleep" class="sleep card">
-    <div class="big" id="sleep-time">Loading...</div>
-    <div id="sleep-range">Loading...</div>
-    <div class="goal"><div class="goal-fill" id="sleep-goal" style="width: 0%"></div></div>
-    <div id="sleep-status" class="status"></div>
-  </div>
-  
-  <p id="message">Loading from Supabase...</p>
-  <button onclick="testSupabase()">Test Supabase</button>
-  
-  <script>
-    const SUPABASE_URL = "https://dbywqgnvfkpfcqoydptg.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023";
+<h1>Today</h1>
+<div id="exercise" class="card exercise">
+<div class="big" id="ex-cal">...</div>
+<div id="ex-details">...</div>
+<div class="goal"><div class="goal-fill" id="ex-goal"></div></div>
+</div>
+<div id="sleep" class="card sleep">
+<div class="big" id="sleep-time">...</div>
+<div class="goal"><div class="goal-fill" id="sleep-goal"></div></div>
+</div>
+<p id="message">Loading...</p>
 
-    async function loadData() {
-      try {
-        const today = new Date().toISOString().split("T")[0];
-        document.getElementById("message").innerText = `Loading ${today}...`;
-        
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/daily?select=*&date=eq.${today}`, {
-          headers: {"apikey": SUPABASE_ANON_KEY}
-        });
-        
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        const data = await res.json();
-        if (data.length === 0) {
-          document.getElementById("message").innerText = `No data for ${today}. Add row to Supabase "daily" table.`;
-          return;
-        }
-        
-        const row = data[0];
-        updateExercise(row);
-        updateSleep(row);
-        document.getElementById("message").innerText = "✅ Live data loaded!";
-        
-      } catch (error) {
-        document.getElementById("message").innerText = `❌ Error: ${error.message}`;
-        document.getElementById("ex-status").innerText = "Error loading";
-        document.getElementById("sleep-status").innerText = "Error loading";
-      }
-    }
-
-    function updateExercise(row) {
-      const cal = row.exercise_calories || 0;
-      const workouts = row.workouts || [];
-      const totalMin = row.exercise_minutes || 0;
-      
-      document.getElementById("ex-cal").innerText = `${cal} kcal`;
-      document.getElementById("ex-details").innerText = `${Math.round(totalMin/60)}h ${totalMin%60}m • ${workouts.length} workouts`;
-      document.getElementById("ex-goal").style.width = `${Math.min(cal/600*100, 100)}%`;
-    }
-
-    function updateSleep(row) {
-      const mins = row.sleep_minutes || 0;
-      const hours = Math.floor(mins / 60);
-      const remainder = mins % 60;
-      
-      document.getElementById("sleep-time").innerText = `${hours}h ${remainder}m`;
-      document.getElementById("sleep-range").innerText = `${row.sleep_start || '?'} → ${row.sleep_end || '?'}`;
-      document.getElementById("sleep-goal").style.width = `${Math.min(mins/480*100, 100)}%`;
-    }
-
-    async function testSupabase() {
-      try {
-        const today = new Date().toISOString().split("T")[0];
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/daily?select=*&date=eq.${today}`, {
-          headers: {"apikey": SUPABASE_ANON_KEY}
-        });
-        const data = await res.json();
-        alert(`Today: ${data.length} rows\n${JSON.stringify(data[0] || {}, null, 2)}`);
-      } catch(e) {
-        alert("Error: " + e.message);
-      }
-    }
-
-    loadData();
-    setInterval(loadData, 30000);
-  </script>
+<script>
+const URL='https://dbywqgnvfkpfcqoydptg.supabase.co/rest/v1/daily';
+fetch(URL+'?select=*&order=date.desc&limit=1',{headers:{'apikey':'sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023'}})
+.then(r=>r.json()).then(data=>{
+if(!data[0]) throw 'No data';
+const row=data[0];
+document.getElementById('message').innerText='✅ Live: '+row.date;
+document.getElementById('ex-cal').innerText=row.exercise_calories+' kcal';
+document.getElementById('ex-details').innerText=row.exercise_minutes+' min';
+document.getElementById('ex-goal').style.width=Math.min(row.exercise_calories/600*100,100)+'%';
+const sm=Math.floor(row.sleep_minutes/60)+'h '+row.sleep_minutes%60+'m';
+document.getElementById('sleep-time').innerText=sm;
+document.getElementById('sleep-goal').style.width=Math.min(row.sleep_minutes/480*100,100)+'%';
+}).catch(e=>document.getElementById('message').innerText='❌ '+e);
+</script>
 </body>
 </html>
