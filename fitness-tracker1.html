@@ -30,7 +30,17 @@
   </div>
   
   <p>Add missing workouts to Apple Health app.</p>
+<button onclick="testSupabase()">Test Supabase</button>
 <script>
+async function testSupabase() {
+  const res = await fetch('https://dbywqgnvfkpfcqoydptg.supabase.co/rest/v1/daily?select=*', {
+    headers: {'apikey': 'sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023'}
+  });
+  const data = await res.json();
+  alert('Found ' + data.length + ' rows');
+}
+</script>
+  <script>
 const SUPABASE_URL = 'https://dbywqgnvfkpfcqoydptg.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023';
 
@@ -47,4 +57,5 @@ async function loadData() {
     'background_color': '#ffffff',
     'theme_color': '#1976d2',
     'icons': [{'src': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD
+
 
