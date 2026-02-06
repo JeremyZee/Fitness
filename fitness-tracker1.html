@@ -11,51 +11,98 @@
     .big { font-size: 48px; font-weight: bold; color: #1976d2; }
     .goal { height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 10px; }
     .goal-fill { height: 100%; background: #4caf50; border-radius: 4px; }
+    .status { color: orange; font-size: 14px; }
+    .error { color: red; }
   </style>
 </head>
 <body>
   <h1>Today</h1>
   
-  <div class="card exercise">
-    <div class="big">420 kcal</div>
-    <div>45 min • 2 workouts</div>
-    <div>Cycling 30m (320), Strength 15m (100)</div>
-    <div class="goal"><div class="goal-fill" style="width: 70%"></div></div>
+  <div id="exercise" class="card exercise">
+    <div class="big" id="ex-cal">Loading...</div>
+    <div id="ex-details">Loading...</div>
+    <div class="goal"><div class="goal-fill" id="ex-goal" style="width: 0%"></div></div>
+    <div id="ex-status" class="status"></div>
   </div>
   
-  <div class="sleep card">
-    <div class="big">7h 30m</div>
-    <div>23:45 → 07:15</div>
-    <div class="goal"><div class="goal-fill" style="width: 90%"></div></div>
+  <div id="sleep" class="sleep card">
+    <div class="big" id="sleep-time">Loading...</div>
+    <div id="sleep-range">Loading...</div>
+    <div class="goal"><div class="goal-fill" id="sleep-goal" style="width: 0%"></div></div>
+    <div id="sleep-status" class="status"></div>
   </div>
   
-  <p>Add missing workouts to Apple Health app.</p>
-<button onclick="testSupabase()">Test Supabase</button>
-<script>
-async function testSupabase() {
-  const res = await fetch('https://dbywqgnvfkpfcqoydptg.supabase.co/rest/v1/daily?select=*', {
-    headers: {'apikey': 'sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023'}
-  });
-  const data = await res.json();
-  alert('Found ' + data.length + ' rows');
-}
-</script>
+  <p id="message">Loading from Supabase...</p>
+  <button onclick="testSupabase()">Test Supabase</button>
+  
   <script>
-const SUPABASE_URL = 'https://dbywqgnvfkpfcqoydptg.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023';
+    const SUPABASE_URL = "https://dbywqgnvfkpfcqoydptg.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_5Z_HjadU7rRgO49kuD70pw_p5j2n023";
 
-async function loadData() {
-  const today = new Date().toISOString().split('T')[0];
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/daily?select=*&date
+    async function loadData() {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("message").innerText = `Loading ${today}...`;
+        
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/daily?select=*&date=eq.${today}`, {
+          headers: {"apikey": SUPABASE_ANON_KEY}
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        if (data.length === 0) {
+          document.getElementById("message").innerText = `No data for ${today}. Add row to Supabase "daily" table.`;
+          return;
+        }
+        
+        const row = data[0];
+        updateExercise(row);
+        updateSleep(row);
+        document.getElementById("message").innerText = "✅ Live data loaded!";
+        
+      } catch (error) {
+        document.getElementById("message").innerText = `❌ Error: ${error.message}`;
+        document.getElementById("ex-status").innerText = "Error loading";
+        document.getElementById("sleep-status").innerText = "Error loading";
+      }
+    }
+
+    function updateExercise(row) {
+      const cal = row.exercise_calories || 0;
+      const workouts = row.workouts || [];
+      const totalMin = row.exercise_minutes || 0;
+      
+      document.getElementById("ex-cal").innerText = `${cal} kcal`;
+      document.getElementById("ex-details").innerText = `${Math.round(totalMin/60)}h ${totalMin%60}m • ${workouts.length} workouts`;
+      document.getElementById("ex-goal").style.width = `${Math.min(cal/600*100, 100)}%`;
+    }
+
+    function updateSleep(row) {
+      const mins = row.sleep_minutes || 0;
+      const hours = Math.floor(mins / 60);
+      const remainder = mins % 60;
+      
+      document.getElementById("sleep-time").innerText = `${hours}h ${remainder}m`;
+      document.getElementById("sleep-range").innerText = `${row.sleep_start || '?'} → ${row.sleep_end || '?'}`;
+      document.getElementById("sleep-goal").style.width = `${Math.min(mins/480*100, 100)}%`;
+    }
+
+    async function testSupabase() {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/daily?select=*&date=eq.${today}`, {
+          headers: {"apikey": SUPABASE_ANON_KEY}
+        });
+        const data = await res.json();
+        alert(`Today: ${data.length} rows\n${JSON.stringify(data[0] || {}, null, 2)}`);
+      } catch(e) {
+        alert("Error: " + e.message);
+      }
+    }
+
+    loadData();
+    setInterval(loadData, 30000);
+  </script>
 </body>
 </html>
-  <link rel="manifest" href="data:application/manifest+json,{
-    'name': 'Fitness Tracker',
-    'short_name': 'Fitness',
-    'start_url': '.',
-    'display': 'standalone',
-    'background_color': '#ffffff',
-    'theme_color': '#1976d2',
-    'icons': [{'src': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD
-
-
